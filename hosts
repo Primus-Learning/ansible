@@ -1,0 +1,6 @@
+[node_app]
+54.209.135.180
+
+[node_app:vars]
+ansible_ssh_private_key_file="/Users/bilal/Documents/Teaching Material/Primus Learning/Second Session/Keys/ansible.pem"
+ansible_user=ubuntu
