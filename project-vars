@@ -1,0 +1,4 @@
+location: /Users/bilal/Documents/Teaching Material/Primus Learning/Second Session/Codes/simple-node-application
+version: 1.0.0
+linux_name: ansible
+user_home_dir: /home/{{linux_name}}

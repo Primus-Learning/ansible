@@ -1,21 +1,52 @@
 ---
-- name: Install node and npm
+- name: Install node, npm and acl
   hosts: node_app
   become: True
   tasks:
     - name: Update apt repo and cache
       apt: update_cache=yes force_apt_get=yes cache_valid_time=3600
-    - name: Install nodejs and npm
+    - name: Install nodejs, npm and acl
       apt:
         pkg:
           - nodejs
           - npm
+          - acl
+
+- name: Create new linux user for node app
+  hosts: node_app
+  become: True
+  vars_files:
+    - project-vars
+  tasks:
+    - name: Create linux user
+      user:
+        name: "{{linux_name}}"
+        comment: Bilal Admin User
+        group: admin
+      register: user_creation_result
+    - debug: msg={{user_creation_result.name}}
 
 - name: Deploy nodejs app
   hosts: node_app
   become: True
+  vars_files:
+    - project-vars
+  become_user: "{{linux_name}}"
   tasks:
     - name: Unpack the nodejs file
       unarchive:
-        src: /Users/bilal/Documents/Teaching Material/Primus Learning/Second Session/Codes/simple-node-application/nodejs-app-1.0.0.tgz
-        dest: /home/ubuntu/
+        src: "{{location}}/nodejs-app-{{version}}.tgz"
+        dest: "{{user_home_dir}}"
+    - name: Install dependencies
+      npm:
+        path: "{{user_home_dir}}/package"
+    - name: Start the application
+      command:
+        chdir: "{{user_home_dir}}/package/app"
+        cmd: node server
+      async: 1000
+      poll: 0
+    - name: Ensure app is running
+      shell: ps aux | grep node
+      register: app_status
+    - debug: msg={{app_status.stdout_lines}}
